@@ -22,7 +22,7 @@ public class UserController {
         return new ArrayList<>(users.values());
     }
 
-    @PostMapping("/user")
+    @PostMapping("/users")
     public User add(@Valid @RequestBody User user, HttpServletRequest request) {
         log.info("Получен запрос к эндпоинту: {} {}, тело запроса {}", request.getMethod(),
                 request.getRequestURI(), user);
@@ -31,7 +31,7 @@ public class UserController {
         return user;
     }
 
-    @PutMapping("/user")
+    @PutMapping("/users")
     public User update(@Valid @RequestBody User user, HttpServletRequest request) {
         log.info("Получен запрос к эндпоинту: {} {}, тело запроса {}", request.getMethod(),
                 request.getRequestURI(), user);

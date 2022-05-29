@@ -25,7 +25,7 @@ public class FilmController {
         return new ArrayList<>(films.values());
     }
 
-    @PostMapping("/film")
+    @PostMapping("/films")
     public Film add(@Valid @RequestBody Film film, HttpServletRequest request) {
         try {
             if (validation(film)) {
@@ -40,7 +40,7 @@ public class FilmController {
         return film;
     }
 
-    @PutMapping("/film")
+    @PutMapping("/films")
     public String update(@Valid @RequestBody Film film, HttpServletRequest request) {
         String response = "Что-то пошло не так";
         try {
