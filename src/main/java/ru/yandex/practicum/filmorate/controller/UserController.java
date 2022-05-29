@@ -14,28 +14,36 @@ import java.util.Map;
 
 @Slf4j
 @RestController
+@RequestMapping("/users")
 public class UserController {
     private Map<Long, User> users = new HashMap<>();
 
-    @GetMapping("/users")
-    public List<User> getAll() {
+    @GetMapping
+    public ArrayList<User> getAll() {
         return new ArrayList<>(users.values());
     }
 
-    @PostMapping("/users")
+    @PostMapping
     public User add(@Valid @RequestBody User user, HttpServletRequest request) {
+        validation(user);
         log.info("Получен запрос к эндпоинту: {} {}, тело запроса {}", request.getMethod(),
                 request.getRequestURI(), user);
         users.put(user.getId(), user);
-
         return user;
     }
 
-    @PutMapping("/users")
+    @PutMapping
     public User update(@Valid @RequestBody User user, HttpServletRequest request) {
+        validation(user);
+        String response = "Что-то пошло не так";
         log.info("Получен запрос к эндпоинту: {} {}, тело запроса {}", request.getMethod(),
                 request.getRequestURI(), user);
         users.put(user.getId(), user);
         return user;
+    }
+    private void validation(User user){
+        if(user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
     }
 }

@@ -17,15 +17,16 @@ import java.util.Map;
 
 @Slf4j
 @RestController
+@RequestMapping("/films")
 public class FilmController {
     private Map<Long, Film> films = new HashMap<>();
 
-    @GetMapping("/films")
-    public List<Film> getAll() {
+    @GetMapping
+    public ArrayList<Film> getAll() {
         return new ArrayList<>(films.values());
     }
 
-    @PostMapping("/films")
+    @PostMapping
     public Film add(@Valid @RequestBody Film film, HttpServletRequest request) {
         try {
             if (validation(film)) {
@@ -40,7 +41,7 @@ public class FilmController {
         return film;
     }
 
-    @PutMapping("/films")
+    @PutMapping
     public String update(@Valid @RequestBody Film film, HttpServletRequest request) {
         String response = "Что-то пошло не так";
         try {
