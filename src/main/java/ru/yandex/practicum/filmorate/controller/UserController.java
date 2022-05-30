@@ -1,7 +1,9 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -16,10 +18,11 @@ import java.util.Map;
 @RestController
 @RequestMapping("/users")
 public class UserController {
+    private static long userId = 0;
     private Map<Long, User> users = new HashMap<>();
 
     @GetMapping
-    public ArrayList<User> getAll() {
+    public List<User> getAll() {
         return new ArrayList<>(users.values());
     }
 
@@ -34,16 +37,33 @@ public class UserController {
 
     @PutMapping
     public User update(@Valid @RequestBody User user, HttpServletRequest request) {
-        validation(user);
-        String response = "Что-то пошло не так";
-        log.info("Получен запрос к эндпоинту: {} {}, тело запроса {}", request.getMethod(),
-                request.getRequestURI(), user);
-        users.put(user.getId(), user);
+        try {
+            if (validation(user)) {
+                log.info("Получен запрос к эндпоинту: {} {}, тело запроса {}", request.getMethod(),
+                        request.getRequestURI(), user);
+                users.put(user.getId(), user);
+            }
+        } catch (ValidationException e) {
+            log.info("Ошибка валидации: " + e.getMessage());
+            throw new ValidationException(e.getMessage());
+        }
         return user;
     }
-    private void validation(User user){
-        if(user.getName().isBlank()) {
+
+    private boolean validation(User user) {
+        if (user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
+        if (user.getId() == 0) {
+            user.setId(getNewId());
+        }
+        if (user.getId() < 0) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "id должен быть больше положительным");
+        }
+        return true;
+    }
+
+    private long getNewId() {
+        return ++userId;
     }
 }

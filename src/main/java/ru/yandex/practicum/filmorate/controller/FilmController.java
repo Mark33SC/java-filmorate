@@ -19,10 +19,11 @@ import java.util.Map;
 @RestController
 @RequestMapping("/films")
 public class FilmController {
+    private static long filmId = 0;
     private Map<Long, Film> films = new HashMap<>();
 
     @GetMapping
-    public ArrayList<Film> getAll() {
+    public List<Film> getAll() {
         return new ArrayList<>(films.values());
     }
 
@@ -35,38 +36,41 @@ public class FilmController {
                 films.put(film.getId(), film);
             }
         } catch (ValidationException e) {
-            log.info("Ошибка валидации: "+ e.getMessage());
+            log.info("Ошибка валидации: " + e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
         return film;
     }
 
     @PutMapping
-    public String update(@Valid @RequestBody Film film, HttpServletRequest request) {
-        String response = "Что-то пошло не так";
+    public Film update(@Valid @RequestBody Film film, HttpServletRequest request) {
         try {
             if (validation(film)) {
                 log.info("Получен запрос к эндпоинту: {} {}, тело запроса {}", request.getMethod(),
                         request.getRequestURI(), film);
-                if (films.containsKey(film.getId())) {
-                    films.put(film.getId(), film);
-                    response = "Фильм успешно обновлен: " + film;
-                } else {
-                    films.put(film.getId(), film);
-                    response = "Фильма с таким id нет, фильм успешно добавлен: " + film;
-                }
+                films.put(film.getId(), film);
             }
         } catch (ValidationException e) {
-            log.info("Ошибка валидации: "+ e.getMessage());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            log.info("Ошибка валидации: " + e.getMessage());
+            throw new ValidationException(e.getMessage());
         }
-        return response;
+        return film;
     }
 
     private boolean validation(Film film) throws ValidationException {
         if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             throw new ValidationException("Дата релиза не может быть раньше 28.12.1895");
         }
+        if (film.getId() == 0) {
+            film.setId(getNewId());
+        }
+        if (film.getId() < 0) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "id должен быть больше положительным");
+        }
         return true;
+    }
+
+    private long getNewId() {
+        return ++filmId;
     }
 }
