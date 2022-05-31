@@ -30,31 +30,22 @@ public class FilmController {
     @PostMapping
     public Film add(@Valid @RequestBody Film film, HttpServletRequest request) {
         try {
-            if (validation(film)) {
-                log.info("Получен запрос к эндпоинту: {} {}, тело запроса {}", request.getMethod(),
-                        request.getRequestURI(), film);
-                films.put(film.getId(), film);
+            if (!validation(film)) {
+                return film;
             }
+            log.info("Получен запрос к эндпоинту: {} {}, тело запроса {}", request.getMethod(),
+                    request.getRequestURI(), film);
+            films.put(film.getId(), film);
         } catch (ValidationException e) {
             log.info("Ошибка валидации: " + e.getMessage());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ValidationException(e.getMessage());
         }
         return film;
     }
 
     @PutMapping
     public Film update(@Valid @RequestBody Film film, HttpServletRequest request) {
-        try {
-            if (validation(film)) {
-                log.info("Получен запрос к эндпоинту: {} {}, тело запроса {}", request.getMethod(),
-                        request.getRequestURI(), film);
-                films.put(film.getId(), film);
-            }
-        } catch (ValidationException e) {
-            log.info("Ошибка валидации: " + e.getMessage());
-            throw new ValidationException(e.getMessage());
-        }
-        return film;
+        return add(film, request);
     }
 
     private boolean validation(Film film) throws ValidationException {

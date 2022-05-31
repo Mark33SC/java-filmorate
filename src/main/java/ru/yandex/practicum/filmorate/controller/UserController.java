@@ -28,26 +28,23 @@ public class UserController {
 
     @PostMapping
     public User add(@Valid @RequestBody User user, HttpServletRequest request) {
-        validation(user);
-        log.info("Получен запрос к эндпоинту: {} {}, тело запроса {}", request.getMethod(),
-                request.getRequestURI(), user);
-        users.put(user.getId(), user);
-        return user;
-    }
-
-    @PutMapping
-    public User update(@Valid @RequestBody User user, HttpServletRequest request) {
         try {
-            if (validation(user)) {
-                log.info("Получен запрос к эндпоинту: {} {}, тело запроса {}", request.getMethod(),
-                        request.getRequestURI(), user);
-                users.put(user.getId(), user);
+            if (!validation(user)) {
+                return user;
             }
+            log.info("Получен запрос к эндпоинту: {} {}, тело запроса {}", request.getMethod(),
+                    request.getRequestURI(), user);
+            users.put(user.getId(), user);
         } catch (ValidationException e) {
             log.info("Ошибка валидации: " + e.getMessage());
             throw new ValidationException(e.getMessage());
         }
         return user;
+    }
+
+    @PutMapping
+    public User update(@Valid @RequestBody User user, HttpServletRequest request) {
+        return add(user, request);
     }
 
     private boolean validation(User user) {
