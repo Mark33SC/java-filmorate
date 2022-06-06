@@ -55,7 +55,7 @@ public class UserController {
             user.setId(getNewId());
         }
         if (user.getId() < 0) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "id должен быть больше положительным");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "id должен быть положительным");
         }
         return true;
     }

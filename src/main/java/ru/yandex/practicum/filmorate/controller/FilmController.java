@@ -56,7 +56,7 @@ public class FilmController {
             film.setId(getNewId());
         }
         if (film.getId() < 0) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "id должен быть больше положительным");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "id должен быть положительным");
         }
         return true;
     }
