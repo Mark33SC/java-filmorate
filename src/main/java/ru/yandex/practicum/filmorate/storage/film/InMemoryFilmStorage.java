@@ -58,10 +58,11 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public boolean validationId(long id) {
-        if (films.containsKey(id))
+        if (films.containsKey(id)) {
             return true;
-        else
+        } else {
             throw new FilmNotFoundException("Фильма с таким id не существует");
+        }
     }
 
     private boolean validation(Film film) throws ValidationException {

@@ -24,10 +24,11 @@ public class User {
         this.id = id;
         this.email = email;
         this.login = login;
-        if (name.equals(""))
+        if (name.equals("")) {
             this.name = login;
-        else
+        } else {
             this.name = name;
+        }
         this.birthday = birthday;
     }
 

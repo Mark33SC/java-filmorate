@@ -30,8 +30,9 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public void removeUser(User user) {
-        if (validationId(user.getId()))
+        if (validationId(user.getId())) {
             users.remove(user.getId());
+        }
     }
 
     @Override
@@ -49,10 +50,11 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public boolean validationId(long id) {
-        if (users.containsKey(id))
+        if (users.containsKey(id)) {
             return true;
-        else
+        } else {
             throw new UserNotFoundException("Пользователя с таким id не существует");
+        }
     }
 
     private long getNewId() {

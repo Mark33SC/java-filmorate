@@ -10,16 +10,17 @@ import java.util.*;
 
 @Service
 public class FilmService {
-    FilmStorage filmStorage;
-    UserStorage userStorage;
+    private final FilmStorage filmStorage;
+    private final UserStorage userStorage;
     private final Comparator<Film> comparator = ((o1, o2) -> {
         if (o1.getId() == o2.getId()) {
             return 0;
         } else {
-            if (o2.getRate() > o1.getRate())
+            if (o2.getRate() > o1.getRate()) {
                 return 1;
-            else
+            } else {
                 return -1;
+            }
         }
     });
     private final Set<Film> mostLikedFilms = new HashSet<>();

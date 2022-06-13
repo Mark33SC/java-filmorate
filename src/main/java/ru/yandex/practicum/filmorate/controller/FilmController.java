@@ -17,8 +17,8 @@ import java.util.stream.Stream;
 @RestController
 @RequestMapping("/films")
 public class FilmController {
-    FilmService filmService;
-    FilmStorage filmStorage;
+    private final FilmService filmService;
+    private final FilmStorage filmStorage;
 
     @Autowired
     public FilmController(FilmService filmService, FilmStorage filmStorage) {
@@ -81,8 +81,9 @@ public class FilmController {
 
     @GetMapping("/popular")
     public Stream<Film> getPopularFilms(@RequestParam(defaultValue = "10", required = false) Integer count) {
-        if (count <= 0)
+        if (count <= 0) {
             throw new IncorrectParameterException("Параметр count не может быть меньше 1");
+        }
         return filmService.getMostLikedFilms().stream().limit(count);
     }
 }
