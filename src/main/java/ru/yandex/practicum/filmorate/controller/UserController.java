@@ -1,66 +1,83 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    private static long userId = 0;
-    private Map<Long, User> users = new HashMap<>();
+    private final UserService userService;
+    private final UserStorage userStorage;
+
+    @Autowired
+    public UserController(UserService userService, UserStorage userStorage) {
+        this.userService = userService;
+        this.userStorage = userStorage;
+    }
 
     @GetMapping
-    public List<User> getAll() {
-        return new ArrayList<>(users.values());
+    public List<User> getAllUsers() {
+        return userStorage.getAllUsers();
     }
 
     @PostMapping
-    public User add(@Valid @RequestBody User user, HttpServletRequest request) {
-        try {
-            if (!validation(user)) {
-                return user;
-            }
-            log.info("Получен запрос к эндпоинту: {} {}, тело запроса {}", request.getMethod(),
-                    request.getRequestURI(), user);
-            users.put(user.getId(), user);
-        } catch (ValidationException e) {
-            log.info("Ошибка валидации: " + e.getMessage());
-            throw new ValidationException(e.getMessage());
-        }
-        return user;
+    public User addUser(@Valid @RequestBody User user, HttpServletRequest request) {
+        log.info("Получен запрос к эндпоинту: {} {}, тело запроса {}", request.getMethod(),
+                request.getRequestURI(), user);
+        return userStorage.addUser(user);
     }
 
     @PutMapping
-    public User update(@Valid @RequestBody User user, HttpServletRequest request) {
-        return add(user, request);
+    public User updateUser(@Valid @RequestBody User user, HttpServletRequest request) {
+        log.info("Получен запрос к эндпоинту: {} {}, тело запроса {}", request.getMethod(),
+                request.getRequestURI(), user);
+        return userStorage.updateUser(user);
     }
 
-    private boolean validation(User user) {
-        if (user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
-        if (user.getId() == 0) {
-            user.setId(getNewId());
-        }
-        if (user.getId() < 0) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "id должен быть положительным");
-        }
-        return true;
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable long id) {
+        return userStorage.getUserById(id);
     }
 
-    private long getNewId() {
-        return ++userId;
+    @PutMapping("/{id}/friends/{friendId}")
+    public String addFriend(@PathVariable long id, @PathVariable long friendId) {
+        userService.addFriend(id, friendId);
+        return "Друг успешно добавлен";
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public String removeFriend(@PathVariable long id, @PathVariable long friendId) {
+        userService.removeFriend(id, friendId);
+        return "Друг удален";
+    }
+
+    @GetMapping("/{id}/friends")
+    public List<User> getFriends(@PathVariable long id) {
+        User user = userStorage.getUserById(id);
+        List<User> friends = new ArrayList<>();
+        for (Long friendId : user.getFriends()) {
+            friends.add(userStorage.getUserById(friendId));
+        }
+        return friends;
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> getMutualFriends(@PathVariable long id, @PathVariable long otherId) {
+        return userService.getMutualFriends(id, otherId);
+    }
+
+    @DeleteMapping
+    public void removeUser(User user) {
+        userStorage.removeUser(user);
     }
 }
