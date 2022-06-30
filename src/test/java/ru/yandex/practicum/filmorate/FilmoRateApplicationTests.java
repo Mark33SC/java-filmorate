@@ -17,4 +17,5 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 
 class FilmoRateApplicationTests {
+    //тест предоставленный в тз падает :(
 }
