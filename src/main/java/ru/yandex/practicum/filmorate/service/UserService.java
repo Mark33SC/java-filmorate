@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -15,22 +16,24 @@ public class UserService {
     private final UserStorage userStorage;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
+    public UserService(@Qualifier("userDbStorage") UserStorage userStorage) {
         this.userStorage = userStorage;
     }
 
     public void addFriend(long userId, long friendId) {
         userStorage.validationId(userId);
         userStorage.validationId(friendId);
-        userStorage.getUserById(userId).addFriend(friendId);
-        userStorage.getUserById(friendId).addFriend(userId);
+        User user = userStorage.getUserById(userId);
+        user.addFriend(friendId);
+        userStorage.updateUser(user);
     }
 
     public void removeFriend(long userId, long friendId) {
         userStorage.validationId(userId);
         userStorage.validationId(friendId);
-        userStorage.getUserById(userId).removeFriend(friendId);
-        userStorage.getUserById(friendId).removeFriend(userId);
+        User user = userStorage.getUserById(userId);
+        user.removeFriend(friendId);
+        userStorage.updateUser(user);
     }
 
     public List<User> getMutualFriends(long userId, long friendId) {
@@ -41,5 +44,14 @@ public class UserService {
             mutualFriends.add(userStorage.getUserById(id));
         }
         return mutualFriends;
+    }
+
+    public List<User> getFriends(long id) {
+        User user = userStorage.getUserById(id);
+        List<User> friends = new ArrayList<>();
+        for (Long friendId : user.getFriends()) {
+            friends.add(userStorage.getUserById(friendId));
+        }
+        return friends;
     }
 }
