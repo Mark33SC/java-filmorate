@@ -30,4 +30,31 @@ public class FilmDbStorageTests {
                         assertThat(film).hasFieldOrPropertyWithValue("id", 1)
                 );
     }
+
+    @Test
+    public void testGetAllFilms() {
+
+    }
+
+    @Test
+    public void testAddFilm() {
+
+    }
+    @Test
+    public void testUpdateFilm() {
+
+    }
+    @Test
+    public void testRemoveFilm() {
+
+    }
+    @Test
+    public void testValidationId() {
+
+    }
+    @Test
+    public void testGetMostLikedFilms() {
+
+    }
+
 }

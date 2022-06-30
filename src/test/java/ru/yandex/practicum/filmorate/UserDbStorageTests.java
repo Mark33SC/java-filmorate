@@ -30,4 +30,29 @@ public class UserDbStorageTests {
                         assertThat(user).hasFieldOrPropertyWithValue("id", 1)
                 );
     }
+
+    @Test
+    public void testGetAllUsers() {
+
+    }
+
+    @Test
+    public void testAddUser() {
+
+    }
+
+    @Test
+    public void testUpdateUser() {
+
+    }
+
+    @Test
+    public void testRemoveUser() {
+
+    }
+
+    @Test
+    public void testValidationId() {
+
+    }
 }
