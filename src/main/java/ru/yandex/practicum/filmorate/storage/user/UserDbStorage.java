@@ -24,8 +24,16 @@ import java.util.Set;
 @Qualifier("userDbStorage")
 public class UserDbStorage implements UserStorage {
 
-
     private final JdbcTemplate jdbcTemplate;
+    private final String getAllUsersSql = "SELECT * FROM users";
+    private final String getUserByIdSql = "SELECT * FROM users WHERE user_id = ?";
+    private final String addUserSql = "INSERT INTO users (EMAIL, LOGIN, NAME, BIRTHDAY) values (:email,:login,:name,:birthday)";
+    private final String updateUserSql = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE user_id = ?";
+    private final String removeUserSql = "DELETE FROM users WHERE user_id = ?";
+    private final String validationIdSql = "SELECT EXISTS (SELECT USER_ID FROM USERS WHERE USER_ID = ?)";
+    private final String getFriendsSql = "SELECT FRIEND_ID FROM FRIENDS WHERE USER_ID = ?";
+    private final String addFriendSql = "INSERT INTO FRIENDS (USER_ID, FRIEND_ID) VALUES (?, ?)";
+    private final String deleteFriendSql = "DELETE FROM FRIENDS WHERE USER_ID = ?";
 
     @Autowired
     public UserDbStorage(JdbcTemplate jdbcTemplate) {
@@ -34,8 +42,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<User> getAllUsers() {
-        String sql = "SELECT * FROM users";
-        List<User> users = jdbcTemplate.query(sql, ((rs, rowNum) -> makeUser(rs)));
+        List<User> users = jdbcTemplate.query(getAllUsersSql, ((rs, rowNum) -> makeUser(rs)));
         for (User user : users) {
             user.addFriend(getFriends(user.getId()));
         }
@@ -45,8 +52,7 @@ public class UserDbStorage implements UserStorage {
     @Override
     public User getUserById(long id) {
         validationId(id);
-        String sql = "SELECT * FROM users WHERE user_id = ?";
-        User user = jdbcTemplate.queryForObject(sql, ((rs, rowNum) -> makeUser(rs)), id);
+        User user = jdbcTemplate.queryForObject(getUserByIdSql, ((rs, rowNum) -> makeUser(rs)), id);
         assert user != null;
         user.addFriend(getFriends(id));
         return user;
@@ -54,7 +60,6 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User addUser(User user) {
-        String sql = "INSERT INTO users (EMAIL, LOGIN, NAME, BIRTHDAY) values (:email,:login,:name,:birthday)";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue("email", user.getEmail());
@@ -63,7 +68,7 @@ public class UserDbStorage implements UserStorage {
         parameters.addValue("birthday", user.getBirthday());
         GeneratedKeyHolder generatedKeyHolder = new GeneratedKeyHolder();
 
-        namedParameterJdbcTemplate.update(sql, parameters, generatedKeyHolder);
+        namedParameterJdbcTemplate.update(addUserSql, parameters, generatedKeyHolder);
         user.setId(Objects.requireNonNull(generatedKeyHolder.getKey()).longValue());
         if (user.getFriends() != null && user.getFriends().size() > 0) {
             addFriend(user);
@@ -74,8 +79,7 @@ public class UserDbStorage implements UserStorage {
     @Override
     public User updateUser(User user) {
         validationId(user.getId());
-        String sql = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE user_id = ?";
-        jdbcTemplate.update(sql, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday(), user.getId());
+        jdbcTemplate.update(updateUserSql, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday(), user.getId());
         if (user.getFriends() != null && user.getFriends().size() > 0) {
             addFriend(user);
         } else {
@@ -87,8 +91,7 @@ public class UserDbStorage implements UserStorage {
     @Override
     public void removeUser(long userId) {
         if (validationId(userId)) {
-            String sql = "DELETE FROM users WHERE user_id = ?";
-            jdbcTemplate.update(sql, userId);
+            jdbcTemplate.update(removeUserSql, userId);
             removeFriend(userId);
         }
     }
@@ -96,8 +99,7 @@ public class UserDbStorage implements UserStorage {
     @Override
     public boolean validationId(long id) {
         if (id > 0) {
-            String sql = "SELECT EXISTS (SELECT USER_ID FROM USERS WHERE USER_ID = ?)";
-            if (Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, id))) {
+            if (Boolean.TRUE.equals(jdbcTemplate.queryForObject(validationIdSql, Boolean.class, id))) {
                 return true;
             } else {
                 throw new UserNotFoundException("Пользователя с таким id не существует");
@@ -117,20 +119,17 @@ public class UserDbStorage implements UserStorage {
     }
 
     private List<Long> getFriends(long id) {
-        String sql = "SELECT FRIEND_ID FROM FRIENDS WHERE USER_ID = ?";
-        return jdbcTemplate.query(sql, ((rs, rowNum) -> rs.getLong("FRIEND_ID")), id);
+        return jdbcTemplate.query(getFriendsSql, ((rs, rowNum) -> rs.getLong("FRIEND_ID")), id);
     }
 
     private void addFriend(User user) {
         removeFriend(user.getId());
         for (Long friendId : user.getFriends()) {
-            String addFriendSql = "INSERT INTO FRIENDS (USER_ID, FRIEND_ID) VALUES (?, ?)";
             jdbcTemplate.update(addFriendSql, user.getId(), friendId);
         }
     }
 
     private void removeFriend(long userId) {
-        String deleteFriendSql = "DELETE FROM FRIENDS WHERE USER_ID = ?";
         jdbcTemplate.update(deleteFriendSql, userId);
     }
 }

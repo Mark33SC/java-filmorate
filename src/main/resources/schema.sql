@@ -1,16 +1,16 @@
-drop table FILM_GENRE;
+drop table FILM_GENRE IF EXISTS;
 
-drop table FRIENDS;
+drop table FRIENDS IF EXISTS;
 
-drop table GENRE;
+drop table GENRE IF EXISTS;
 
-drop table LIKES;
+drop table LIKES IF EXISTS;
 
-drop table FILMS;
+drop table FILMS IF EXISTS;
 
-drop table MPA_RATE;
+drop table MPA_RATE IF EXISTS;
 
-drop table USERS;
+drop table USERS IF EXISTS;
 
 CREATE TABLE IF NOT EXISTS genre
 (

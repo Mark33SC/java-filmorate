@@ -11,6 +11,9 @@ import java.util.Collection;
 @Component
 public class MPADaoImpl implements MPARateDao {
     private final JdbcTemplate jdbcTemplate;
+    private final String getAllMPASql = "SELECT * FROM MPA_RATE";
+    private final String getMPAByIdSql = "SELECT * FROM MPA_RATE WHERE MPA_RATE_ID = ?";
+    private final String checkIdSql = "SELECT EXISTS (SELECT MPA_RATE_ID FROM MPA_RATE WHERE MPA_RATE_ID = ?)";
 
     @Autowired
     public MPADaoImpl(JdbcTemplate jdbcTemplate) {
@@ -19,23 +22,20 @@ public class MPADaoImpl implements MPARateDao {
 
     @Override
     public Collection<MPA> getAllMPA() {
-        String sql = "SELECT * FROM MPA_RATE";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new MPA(rs.getInt("MPA_RATE_ID"),
+        return jdbcTemplate.query(getAllMPASql, (rs, rowNum) -> new MPA(rs.getInt("MPA_RATE_ID"),
                 rs.getString("NAME")));
     }
 
     @Override
     public MPA getMPAById(int id) {
         checkId(id);
-        String sql = "SELECT * FROM MPA_RATE WHERE MPA_RATE_ID = ?";
-        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> new MPA(rs.getInt("MPA_RATE_ID"),
+        return jdbcTemplate.queryForObject(getMPAByIdSql, (rs, rowNum) -> new MPA(rs.getInt("MPA_RATE_ID"),
                 rs.getString("NAME")), id);
     }
 
     private boolean checkId(int id) {
         if (id > 0) {
-            String sql = "SELECT EXISTS (SELECT MPA_RATE_ID FROM MPA_RATE WHERE MPA_RATE_ID = ?)";
-            if (Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, id))) {
+            if (Boolean.TRUE.equals(jdbcTemplate.queryForObject(checkIdSql, Boolean.class, id))) {
                 return true;
             } else {
                 throw new NotFoundException("Рейтинга с таким id не существует");

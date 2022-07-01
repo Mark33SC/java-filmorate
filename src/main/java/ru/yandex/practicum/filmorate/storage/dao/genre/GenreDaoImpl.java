@@ -11,6 +11,9 @@ import java.util.Collection;
 @Component
 public class GenreDaoImpl implements GenreDao {
     private final JdbcTemplate jdbcTemplate;
+    private final String getAllGenreSql = "SELECT * FROM GENRE ORDER BY GENRE_ID";
+    private final String getGenreByIdSql = "SELECT * FROM GENRE WHERE GENRE_ID = ?";
+    private final String checkIdSql = "SELECT EXISTS (SELECT GENRE_ID FROM GENRE WHERE GENRE_ID = ?)";
 
     @Autowired
     public GenreDaoImpl(JdbcTemplate jdbcTemplate) {
@@ -19,23 +22,20 @@ public class GenreDaoImpl implements GenreDao {
 
     @Override
     public Collection<Genre> getAllGenre() {
-        String sql = "SELECT * FROM GENRE ORDER BY GENRE_ID";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new Genre(rs.getInt("GENRE_ID"),
+        return jdbcTemplate.query(getAllGenreSql, (rs, rowNum) -> new Genre(rs.getInt("GENRE_ID"),
                 rs.getString("NAME")));
     }
 
     @Override
     public Genre getGenreById(int id) {
         checkId(id);
-        String sql = "SELECT * FROM GENRE WHERE GENRE_ID = ?";
-        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> new Genre(rs.getInt("GENRE_ID"),
+        return jdbcTemplate.queryForObject(getGenreByIdSql, (rs, rowNum) -> new Genre(rs.getInt("GENRE_ID"),
                 rs.getString("NAME")), id);
     }
 
     private boolean checkId(int id) {
         if (id > 0) {
-            String sql = "SELECT EXISTS (SELECT GENRE_ID FROM GENRE WHERE GENRE_ID = ?)";
-            if (Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, id))) {
+            if (Boolean.TRUE.equals(jdbcTemplate.queryForObject(checkIdSql, Boolean.class, id))) {
                 return true;
             } else {
                 throw new NotFoundException("Жанра с таким id не существует");
