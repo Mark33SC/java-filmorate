@@ -29,9 +29,9 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public void removeUser(User user) {
-        if (validationId(user.getId())) {
-            users.remove(user.getId());
+    public void removeUser(long id) {
+        if (validationId(id)) {
+            users.remove(id);
         }
     }
 
